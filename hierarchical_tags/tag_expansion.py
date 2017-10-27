@@ -11,9 +11,9 @@ import csv
 from shutil import move
 
 def expand_tags(tag, delimiter='/'):
-        subtags = tag.split(delimiter)
-        for i in range(1, len(subtags) + 1):
-            yield delimiter.join(subtags[:i])
+    subtags = tag.split(delimiter)
+    for i in range(1, len(subtags) + 1):
+        yield delimiter.join(subtags[:i])
 
 def expand_tags_string(tag_string, delimiter='/'):
     expanded_tags = []
@@ -24,18 +24,21 @@ def expand_tags_string(tag_string, delimiter='/'):
 
     return ' '.join(expanded_tags)
 
+def expand_tags_in_csv(csv_file, delimiter='/'):
+    with open(file, 'r') as infile, open('[temp]' + file, 'w') as outfile:
+        reader = csv.DictReader(infile, delimiter="\t")
+        writer = csv.writer(outfile, delimiter="\t")
+        for row in reader:
+            row['Tags'] = expand_tags_string(row['Tags'])
+            writer.writerow(row.values()) #use .values so that we don't print
+                                          #the header row over and over
+    #replace the original file with the newly unpacked file
+    move(outfile.name, file)
+
 def main():
-    _, delimiter, *filenames = sys.argv #use extended sequence unpacking
+    _, delimiter, *filenames = sys.argv
     for file in filenames:
-        with open(file, 'r') as infile, open('[temp]' + file, 'w') as outfile:
-            reader = csv.DictReader(infile, delimiter="\t")
-            writer = csv.writer(outfile, delimiter="\t")
-            for row in reader:
-                row['Tags'] = expand_tags_string(row['Tags'])
-                writer.writerow(row.values()) #.values so that we don't print
-                                              #the header row over and over
-                #replace the original file with the newly unpacked file
-        move(outfile.name, file) 
+        expand_tags_in_csv(file, delimiter)
 
 if __name__ == '__main__':
     main()
