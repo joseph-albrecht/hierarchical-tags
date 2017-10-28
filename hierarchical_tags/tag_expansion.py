@@ -7,6 +7,7 @@ This way you can write the deepest tag path and this script will unpack
 it to list out all of the tag-directories the card is in.
 '''
 import sys
+import os
 import csv
 from shutil import move
 
@@ -24,8 +25,11 @@ def expand_tags_string(tag_string, delimiter='/'):
 
     return ' '.join(expanded_tags)
 
-def expand_tags_in_csv(csv_file, delimiter='/'):
-    with open(file, 'r') as infile, open('[temp]' + file, 'w') as outfile:
+def expand_tags_in_csv(file, delimiter='/'):
+    outfile_path = os.path.dirname(file)
+    outfile_path += '[temp]'
+    outfile_path += os.path.basename(file)
+    with open(file, 'r') as infile, open(outfile_path, 'w') as outfile:
         reader = csv.DictReader(infile, delimiter="\t")
         writer = csv.writer(outfile, delimiter="\t")
         for row in reader:
@@ -38,7 +42,10 @@ def expand_tags_in_csv(csv_file, delimiter='/'):
 def main():
     _, delimiter, *filenames = sys.argv
     for file in filenames:
-        expand_tags_in_csv(file, delimiter)
+        if os.path.isabs(file):
+            expand_tags_in_csv(file, delimiter)
+        else:
+            expand_tags_in_csv(os.path.abspath(file), delimiter)
 
 if __name__ == '__main__':
     main()
