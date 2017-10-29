@@ -19,7 +19,7 @@ def test_expand_tags_string_should_return_string_with_all_sub_tags():
     actual_sub_tags = expand_tags_string("sub/tags/string")
     assert expected_sub_tags == actual_sub_tags
 
-def test_expand_tags_in_a_single_tsv(tmpdir):
+def test_expand_tags_with_a_single_tsv(tmpdir):
     #make tsv lines
     header = ['front', 'back', 'Tags']
     unprocessed_row_one = ['d', 'b', 'sub/tags/list']
@@ -46,7 +46,37 @@ def test_expand_tags_in_a_single_tsv(tmpdir):
         for i, row in enumerate(reader):
             assert row[2] == out_lines[i][2]
             
-                       
+
+def test_expand_tags_with_multiple_tsv(tmpdir): #make tsv lines
+    header = ['front', 'back', 'Tags']
+    unprocessed_row_one = ['d', 'b', 'sub/tags/list']
+    unprocessed_row_two = ['a', 'b', 'second/list']
+    processed_row_one = ['a', 'b', 'sub sub/tags sub/tags/list']
+    processed_row_two = ['a', 'b', 'second second/list']
+
+    in_lines = [header, unprocessed_row_one, unprocessed_row_two]
+    out_lines = [processed_row_one, processed_row_two]
+
+    #make files
+    unprocessed_files = []
+    for i in range(5):
+        unprocessed_file = tmpdir.join('in_file' + str(i) + '.tsv')
+        open_unprocessed_file = unprocessed_file.open(mode='w')
+        unprocessed_files.append(open_unprocessed_file)
+
+    for file in unprocessed_files:
+        writer = csv.writer(file, delimiter='\t')
+        for line in in_lines:
+            writer.writerow(line)
+        file.close()
+        expand_tags_in_csv(file.name)
+
+    for file in unprocessed_files:
+        with open(file.name, 'r') as processed_file:
+            reader = csv.reader(processed_file, delimiter='\t')
+            for i, row in enumerate(reader):
+                assert row[2] == out_lines[i][2]
+                      
     
     
     
