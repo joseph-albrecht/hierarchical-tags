@@ -22,7 +22,7 @@ def test_expand_tags_string_should_return_string_with_all_sub_tags():
 def test_expand_tags_with_a_single_tsv(tmpdir):
     #make tsv lines
     header = ['front', 'back', 'Tags']
-    unprocessed_row_one = ['d', 'b', 'sub/tags/list']
+    unprocessed_row_one = ['a', 'b', 'sub/tags/list']
     unprocessed_row_two = ['a', 'b', 'second/list']
     processed_row_one = ['a', 'b', 'sub sub/tags sub/tags/list']
     processed_row_two = ['a', 'b', 'second second/list']
@@ -44,13 +44,11 @@ def test_expand_tags_with_a_single_tsv(tmpdir):
     with open(path, 'r') as processed_file:
         reader = csv.reader(processed_file, delimiter='\t')
         for i, row in enumerate(reader):
-            assert row[2] == out_lines[i][2]
-
-            
+            assert row == out_lines[i]
 
 def test_expand_tags_with_multiple_tsv(tmpdir): #make tsv lines
     header = ['front', 'back', 'Tags']
-    unprocessed_row_one = ['d', 'b', 'sub/tags/list']
+    unprocessed_row_one = ['a', 'b', 'sub/tags/list']
     unprocessed_row_two = ['a', 'b', 'second/list']
     processed_row_one = ['a', 'b', 'sub sub/tags sub/tags/list']
     processed_row_two = ['a', 'b', 'second second/list']
@@ -74,7 +72,7 @@ def test_expand_tags_with_multiple_tsv(tmpdir): #make tsv lines
         with open(path, 'r') as processed_file:
             reader = csv.reader(processed_file, delimiter='\t')
             for i, row in enumerate(reader):
-                assert row[2] == out_lines[i][2]
+                assert row == out_lines[i]
                       
     
     
