@@ -6,12 +6,12 @@ from hierarchical_tags.tag_expansion import expand_tags_in_csv
 
 def test_expand_tags_should_return_an_iterator_with_all_sub_tags():
     expected_sub_tags = ['sub', 'sub/tags', 'sub/tags/list']
-    actual_sub_tags = [sub for sub in expand_tags('sub/tags/list')]
+    actual_sub_tags = list(expand_tags('sub/tags/list'))
     assert expected_sub_tags == actual_sub_tags
 
 def test_expand_tags_with_different_delimiter():
     expected_sub_tags = ['sub', 'sub:tags', 'sub:tags:list']
-    actual_sub_tags = [sub for sub in expand_tags('sub:tags:list', ':')]
+    actual_sub_tags = list(expand_tags('sub:tags:list', ':'))
     assert expected_sub_tags == actual_sub_tags
 
 def test_expand_tags_string_should_return_string_with_all_sub_tags():
@@ -32,19 +32,20 @@ def test_expand_tags_with_a_single_tsv(tmpdir):
 
     #make file
     unprocessed_file = tmpdir.join('in_file.tsv')
-    file_path = str(unprocessed_file)
-    open_unprocessed_file = unprocessed_file.open(mode='w')
-    writer = csv.writer(open_unprocessed_file, delimiter='\t')
-    for line in in_lines:
-        writer.writerow(line)
-    open_unprocessed_file.close()
-    expand_tags_in_csv(str(file_path))
+    path = str(unprocessed_file)
 
-    print (file_path)
-    with open(file_path, 'r') as processed_file:
+    with open(path, 'w') as new_file:
+        writer = csv.writer(new_file, delimiter='\t')
+        for line in in_lines:
+            writer.writerow(line)
+
+    expand_tags_in_csv(path)
+
+    with open(path, 'r') as processed_file:
         reader = csv.reader(processed_file, delimiter='\t')
         for i, row in enumerate(reader):
             assert row[2] == out_lines[i][2]
+
             
 
 def test_expand_tags_with_multiple_tsv(tmpdir): #make tsv lines
@@ -58,21 +59,19 @@ def test_expand_tags_with_multiple_tsv(tmpdir): #make tsv lines
     out_lines = [processed_row_one, processed_row_two]
 
     #make files
-    unprocessed_files = []
+    paths = []
     for i in range(5):
         unprocessed_file = tmpdir.join('in_file' + str(i) + '.tsv')
-        open_unprocessed_file = unprocessed_file.open(mode='w')
-        unprocessed_files.append(open_unprocessed_file)
+        path = str(unprocessed_file)
+        with open(path, 'w') as new_file:
+            writer = csv.writer(new_file, delimiter='\t')
+            for line in in_lines:
+                writer.writerow(line)
+        paths.append(path)
+        expand_tags_in_csv(path)
 
-    for file in unprocessed_files:
-        writer = csv.writer(file, delimiter='\t')
-        for line in in_lines:
-            writer.writerow(line)
-        file.close()
-        expand_tags_in_csv(file.name)
-
-    for file in unprocessed_files:
-        with open(file.name, 'r') as processed_file:
+    for path in paths:
+        with open(path, 'r') as processed_file:
             reader = csv.reader(processed_file, delimiter='\t')
             for i, row in enumerate(reader):
                 assert row[2] == out_lines[i][2]
